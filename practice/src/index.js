@@ -5,6 +5,8 @@ import Title from './components/title';
 import Table from './components/table';
 import styles from './components/assets/global.module.css';
 import { DataProvider } from './components/common/dataContext';
+import PokemonModal from './components/PokemonModal.jsx';
+
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
