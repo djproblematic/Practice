@@ -1,23 +1,18 @@
-import React, { useEffect, useState, useRef } from "react";
-// import styles from './assets/pokeTable.module.css';
-// import titleStyles from './assets/pokeTitle.module.css';
-import styles from './assets/main.module.css';
+import React, { useEffect, useState } from "react";
 import ReactPaginate from "react-paginate";
 import NextButton from './common/nextButton';
 import PrevButton from './common/prevButton';
 import PokemonModal from './PokemonModal';
+import styles from './assets/main.module.css';
 
 const Table = () => {
     const [pageCount, setPageCount] = useState(0);
     const [currentPage, setCurrentPage] = useState(0);
     const [pokemonDetails, setPokemonDetails] = useState([]);
-    const [currentTags, setCurrentTags] = useState([]);
-    const [selectedPokemon, setSelectedPokemon] = useState(null);
-    const [itemsValue, setItemsValue] = useState(10); // Default value, change as needed
     const [activeTags, setActiveTags] = useState([]);
+    const [selectedPokemon, setSelectedPokemon] = useState(null);
+    const [itemsValue, setItemsValue] = useState(10);
     const [searchContent, setSearchContent] = useState("");
-
-
 
     const fetchDataWithoutTags = async () => {
         try {
@@ -50,40 +45,39 @@ const Table = () => {
             }
             setPokemonDetails(allPokemonDetailsData);
             setPageCount(Math.ceil(allPokemonDetailsData.length / itemsValue));
-            setCurrentTags(activeTags);
         } catch (error) {
             console.error("Error fetching data with tags:", error);
         }
     };
 
-    const fetchDataByName = async () => {
-        try {
-            const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${searchContent}`);
-            const data = await response.json();
-            setPokemonDetails([data]);
-            setPageCount(1);
-        } catch (error) {
-            console.error("Error fetching data by name:", error);
+    const filterPokemonByName = (name) => {
+        return pokemonDetails.filter(pokemon => pokemon.name.toLowerCase().includes(name.toLowerCase()));
+    };
+
+    useEffect(() => {
+        if (activeTags.length > 0) {
+            fetchDataWithTags();
+        } else if (searchContent.trim() !== "") {
+            const filteredPokemon = filterPokemonByName(searchContent);
+            setPokemonDetails(filteredPokemon);
+            setPageCount(Math.ceil(filteredPokemon.length / itemsValue));
+            setCurrentPage(0);
+        } else {
+            fetchDataWithoutTags();
         }
+    }, [currentPage, itemsValue, activeTags, searchContent]);
+
+    const handleSearchChange = (e) => {
+        setSearchContent(e.target.value);
     };
 
     const changePage = ({ selected }) => {
         setCurrentPage(selected);
     };
 
-    useEffect(() => {
-        if (activeTags.length > 0) {
-            fetchDataWithTags();
-        } else if (searchContent) {
-            fetchDataByName();
-        } else {
-            fetchDataWithoutTags();
-        }
-    }, [currentPage, itemsValue, activeTags, searchContent]);
-
     const changeItemsOnPage = (newValue) => {
         setItemsValue(newValue);
-    }
+    };
 
     const setActiveTag = (tag) => {
         if (activeTags.includes(tag)) {
@@ -91,11 +85,7 @@ const Table = () => {
         } else {
             setActiveTags([...activeTags, tag]);
         }
-    }
-
-    const searchButtonClick = () => {
-        fetchDataByName();
-    }
+    };
 
     return (
         <div className={styles.pokeArea}>
@@ -103,8 +93,7 @@ const Table = () => {
                 <PokemonModal pokemon={selectedPokemon} onClose={() => setSelectedPokemon(null)} />
             )}
             <div className={styles.searchArea}>
-                <input onChange={(e) => setSearchContent(e.target.value.toLowerCase())} className={styles.searcher} placeholder=" SEARCH"></input>
-                {/* <button onClick={searchButtonClick}>SEARCH</button> */}
+                <input onChange={handleSearchChange} value={searchContent} className={styles.searcher} placeholder=" SEARCH" />
             </div>
             <div className={styles.pokePlaceTags}>
                 <span color="purple" className={styles.tags}>TAGS</span>
@@ -119,7 +108,6 @@ const Table = () => {
                 <span onClick={() => setActiveTag('ground')} className={styles.pokeTags}>GROUND</span>
                 <span onClick={() => setActiveTag('flying')} className={styles.pokeTags}>FLYING</span>
             </div>
-
             <ReactPaginate
                 className={styles.pokePaginate}
                 previousLabel={<PrevButton />}
@@ -137,16 +125,16 @@ const Table = () => {
                 {pokemonDetails.map((pokemon, index) => (
                     <div key={index} className={styles.pokeCard} onClick={() => setSelectedPokemon(pokemon)}>
                         <span className={`${styles.upperCase} ${styles.titleName}`} color="purple">{pokemon.name}</span>
-                        <img className={styles.imgContent} src={pokemon.sprites?.front_default} alt={pokemon.name} /> {/* Используется оператор ?. */}
+                        <img className={styles.imgContent} src={pokemon.sprites?.front_default} alt={pokemon.name} />
                     </div>
                 ))}
             </div>
             <div className={styles.itemsPlaceNumber}>
                 <div className={styles.placeNumber}>
                     <span color="purple">COUNT ON PAGE</span>
-                    <button onClick={() => { changeItemsOnPage(10) }} className={styles.buttonItemsNumber}><span>10</span></button>
-                    <button onClick={() => { changeItemsOnPage(20) }} className={styles.buttonItemsNumber}><span>20</span></button>
-                    <button onClick={() => { changeItemsOnPage(50) }} className={styles.buttonItemsNumber}><span>50</span></button>
+                    <button onClick={() => changeItemsOnPage(10)} className={styles.buttonItemsNumber}><span>10</span></button>
+                    <button onClick={() => changeItemsOnPage(20)} className={styles.buttonItemsNumber}><span>20</span></button>
+                    <button onClick={() => changeItemsOnPage(50)} className={styles.buttonItemsNumber}><span>50</span></button>
                 </div>
             </div>
         </div>

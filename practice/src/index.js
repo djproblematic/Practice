@@ -20,3 +20,21 @@ root.render(
 );
 
 reportWebVitals();
+
+function searchPokemon() {
+  // Получаем значение из поля ввода поиска
+  var searchText = document.getElementById("searchContent").value.toLowerCase();
+  
+  // Получаем все элементы с классом "pokeCard"
+  var pokeCards = document.querySelectorAll(".pokeCard");
+
+  // Проходим по каждому элементу и скрываем те, которые не соответствуют введенному тексту
+  pokeCards.forEach(function(card) {
+      var pokemonName = card.querySelector(".titleName").innerText.toLowerCase();
+      if (pokemonName.includes(searchText)) {
+          card.style.display = "flex"; // Показываем карточку, если текст найден
+      } else {
+          card.style.display = "none"; // Скрываем карточку, если текст не найден
+      }
+  });
+}
